@@ -1,11 +1,12 @@
 use crate::ast::{Expr, Op};
 use crate::ast::Identifier;
 use crate::ast::File;
+use crate::read::{parse, read, Error};
 
-pub fn evaluate(iden: Identifier, file: &File) -> i64 {
+pub async fn evaluate(iden: Identifier, file: &File) -> Result<i64, Error> {
     assert!(file.imports.is_empty());
     let context = Context { file_iden: iden, args: vec![] };
-    eval(&context, &file.expression)
+    eval(&context, &file.expression).await
 }
 
 struct Context {
@@ -13,12 +14,12 @@ struct Context {
     args: Vec<i64>,
 }
 
-fn eval(context: &Context, expr: &Expr) -> i64 {
-    match expr {
+async fn eval(context: &Context, expr: &Expr) -> Result<i64, Error> {
+    Ok(match expr {
         Expr::Value(nr) => *nr,
         Expr::BinOp(op, left, right) => {
-            let left = eval(context, left);
-            let right = eval(context, right);
+            let left = eval(context, left).await?;
+            let right = eval(context, right).await?;
             match op {
                 Op::Add => left.saturating_add(right),
                 Op::Sub => left.saturating_sub(right),
@@ -33,10 +34,14 @@ fn eval(context: &Context, expr: &Expr) -> i64 {
                 Op::Or => if left != 0 || right != 0 { 1 } else { 0 },
             }
         },
-        Expr::If(conf, yes, no) => if eval(context, conf) != 0
-                { eval(context, yes) } else { eval(context, no) }
+        Expr::If(conf, yes, no) => if eval(context, conf).await? != 0
+                { eval(context, yes).await? } else { eval(context, no).await? }
         Expr::Arg(ix) => context.args.get(*ix as usize).map(|nr| *nr).unwrap_or(0),
-        Expr::Call(iden, args) => unimplemented!("call {iden:?}"),
+        Expr::Call(iden, args) => {
+            let json = read(iden).await?;
+            let file = parse(iden.clone(), json).await?;
+            evaluate(iden, &file.expression)
+        },
         Expr::Delay(expr, wait_ms) => eval(context, expr),
-    }
+    })
 }
