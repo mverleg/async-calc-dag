@@ -1,6 +1,6 @@
-use crate::parse::{Expr, Op};
-use crate::parse::Identifier;
-use crate::parse::File;
+use crate::ast::{Expr, Op};
+use crate::ast::Identifier;
+use crate::ast::File;
 
 pub fn evaluate(iden: Identifier, file: &File) -> i64 {
     assert!(file.imports.is_empty());
@@ -32,9 +32,11 @@ fn eval(context: &Context, expr: &Expr) -> i64 {
                 Op::And => if left != 0 && right != 0 { 1 } else { 0 },
                 Op::Or => if left != 0 || right != 0 { 1 } else { 0 },
             }
-        }
+        },
+        Expr::If(conf, yes, no) => if eval(context, conf) != 0
+                { eval(context, yes) } else { eval(context, no) }
         Expr::Arg(ix) => context.args.get(*ix as usize).map(|nr| *nr).unwrap_or(0),
-        Expr::Call(iden, args) => unimplemented!(),
+        Expr::Call(iden, args) => unimplemented!("call {iden:?}"),
         Expr::Delay(expr, wait_ms) => eval(context, expr),
     }
 }

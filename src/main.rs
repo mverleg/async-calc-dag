@@ -1,4 +1,4 @@
-mod parse;
+mod ast;
 mod exec;
 
 fn main() {
@@ -8,11 +8,11 @@ fn main() {
 #[cfg(test)]
 mod test {
     use crate::exec::evaluate;
-    use crate::parse::Expr::BinOp;
-    use crate::parse::Expr::Value;
-    use crate::parse::File;
-    use crate::parse::Identifier;
-    use crate::parse::Op;
+    use crate::ast::Expr::BinOp;
+    use crate::ast::Expr::Value;
+    use crate::ast::File;
+    use crate::ast::Identifier;
+    use crate::ast::Op;
 
     #[test]
     fn single_file() {
@@ -22,8 +22,8 @@ mod test {
                 Op::Add,
                 Box::new(BinOp(
                     Op::Mul,
-                    Box::new(Value(2)),
-                    Box::new(Value(2)))),
+                    Box::new(Value(4)),
+                    Box::new(Value(4)))),
                 Box::new(BinOp(
                     Op::Mul,
                     Box::new(Value(3)),
