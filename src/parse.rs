@@ -1,12 +1,19 @@
+use serde::Deserialize;
+use serde::Serialize;
 
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Identifier {
     pub value: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+impl Identifier {
+    pub fn of(value: impl Into<String>) -> Self {
+        // should validate input
+        Self { value: value.into() }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Op {
     Add,
     Sub,
@@ -14,9 +21,15 @@ pub enum Op {
     Div,
     Min,
     Max,
+    Lt,
+    Gt,
+    Eq,
+    And,
+    Or,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
 pub enum Expr {
     Value(i64),
     BinOp(Op, Box<Expr>, Box<Expr>),
