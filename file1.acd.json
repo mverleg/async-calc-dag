@@ -1,0 +1,30 @@
+{
+  "imports": [],
+  "expression": {
+    "BinOp": [
+      "Add",
+      {
+        "BinOp": [
+          "Mul",
+          {
+            "Value": 2
+          },
+          {
+            "Value": 2
+          }
+        ]
+      },
+      {
+        "BinOp": [
+          "Mul",
+          {
+            "Value": 3
+          },
+          {
+            "Value": 3
+          }
+        ]
+      }
+    ]
+  }
+}
