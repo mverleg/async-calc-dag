@@ -1,11 +1,13 @@
+use std::thread::sleep;
+use std::time::Duration;
 use crate::ast::{Expr, Op};
 use crate::ast::Identifier;
 use crate::ast::File;
 use crate::read::{parse, read, Error};
 
-pub async fn evaluate(iden: Identifier, file: &File) -> Result<i64, Error> {
+pub async fn evaluate(iden: Identifier, file: &File, args: &[i64]) -> Result<i64, Error> {
     assert!(file.imports.is_empty());
-    let context = Context { file_iden: iden, args: vec![] };
+    let context = Context { file_iden: iden, args };
     eval(&context, &file.expression).await
 }
 
@@ -24,7 +26,7 @@ async fn eval(context: &Context, expr: &Expr) -> Result<i64, Error> {
                 Op::Add => left.saturating_add(right),
                 Op::Sub => left.saturating_sub(right),
                 Op::Mul => left.saturating_mul(right),
-                Op::Div => if right == 0 { 0 } else { left.saturating_div(right) },
+                Op::Div => if right == 0 { return Err(Error::DivideByZero(context.file_iden, left)) } else { left.saturating_div(right) },
                 Op::Min => if left <= right { left } else { right },
                 Op::Max => if left >= right { left } else { right },
                 Op::Lt => if left < right { 1 } else { 0 },
@@ -39,9 +41,13 @@ async fn eval(context: &Context, expr: &Expr) -> Result<i64, Error> {
         Expr::Arg(ix) => context.args.get(*ix as usize).map(|nr| *nr).unwrap_or(0),
         Expr::Call(iden, args) => {
             let json = read(iden).await?;
-            let file = parse(iden.clone(), json).await?;
-            evaluate(iden, &file.expression)
+            let file = parse(iden, json).await?;
+            evaluate(iden.clone(), &file, args).await?
         },
-        Expr::Delay(expr, wait_ms) => eval(context, expr),
+        Expr::Delay(expr, wait_ms) => {
+            // this intentionally uses blocking sleep, because it simulated heavy computation
+            sleep(Duration::from_millis(*wait_ms as u64));
+            eval(context, expr).await?
+        },
     })
 }
