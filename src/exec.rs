@@ -1,9 +1,14 @@
-use std::thread::sleep;
-use std::time::Duration;
-use crate::ast::{Expr, Op};
+use ::std::thread::sleep;
+use ::std::time::Duration;
+use ::futures::future::try_join_all;
+
+use crate::ast::Expr;
+use crate::ast::Op;
 use crate::ast::Identifier;
 use crate::ast::File;
-use crate::read::{parse, read, Error};
+use crate::read::read;
+use crate::read::parse;
+use crate::read::Error;
 
 pub async fn evaluate(iden: Identifier, file: &File, args: &[i64]) -> Result<i64, Error> {
     assert!(file.imports.is_empty());
@@ -11,12 +16,12 @@ pub async fn evaluate(iden: Identifier, file: &File, args: &[i64]) -> Result<i64
     eval(&context, &file.expression).await
 }
 
-struct Context {
+struct Context<'a> {
     file_iden: Identifier,
-    args: Vec<i64>,
+    args: &'a [i64],
 }
 
-async fn eval(context: &Context, expr: &Expr) -> Result<i64, Error> {
+async fn eval(context: &Context<'_>, expr: &Expr) -> Result<i64, Error> {
     Ok(match expr {
         Expr::Value(nr) => *nr,
         Expr::BinOp(op, left, right) => {
@@ -26,7 +31,7 @@ async fn eval(context: &Context, expr: &Expr) -> Result<i64, Error> {
                 Op::Add => left.saturating_add(right),
                 Op::Sub => left.saturating_sub(right),
                 Op::Mul => left.saturating_mul(right),
-                Op::Div => if right == 0 { return Err(Error::DivideByZero(context.file_iden, left)) } else { left.saturating_div(right) },
+                Op::Div => if right == 0 { return Err(Error::DivideByZero(context.file_iden.clone(), left)) } else { left.saturating_div(right) },
                 Op::Min => if left <= right { left } else { right },
                 Op::Max => if left >= right { left } else { right },
                 Op::Lt => if left < right { 1 } else { 0 },
@@ -42,7 +47,8 @@ async fn eval(context: &Context, expr: &Expr) -> Result<i64, Error> {
         Expr::Call(iden, args) => {
             let json = read(iden).await?;
             let file = parse(iden, json).await?;
-            evaluate(iden.clone(), &file, args).await?
+            let arg_vals = try_join_all(args.into_iter().map(|a| eval(context, a))).await?;
+            evaluate(iden.clone(), &file, &arg_vals).await?
         },
         Expr::Delay(expr, wait_ms) => {
             // this intentionally uses blocking sleep, because it simulated heavy computation

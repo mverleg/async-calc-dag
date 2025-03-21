@@ -33,5 +33,6 @@ pub mod test {
         };
         let res = evaluate(Identifier::of("test"), &file, &[]).await?;
         assert_eq!(res, 25);
+        Ok(())
     }
 }
