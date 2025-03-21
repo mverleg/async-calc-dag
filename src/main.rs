@@ -27,10 +27,10 @@ async fn main() {
 #[cfg(test)]
 pub mod test {
     use crate::Identifier;
-use crate::read::{write, Error};
+    use crate::read::Error;
     use crate::ast::Expr::{Arg, BinOp, Call};
     use crate::ast::Expr::Value;
-    use crate::ast::{arg, File};
+    use crate::ast::File;
     use crate::ast::Op;
     use crate::exec::evaluate_file;
 
@@ -60,8 +60,8 @@ use crate::read::{write, Error};
             imports: vec![Identifier::of("square")],
             expression: BinOp(
                 Op::Mul,
-                Box::new(Arg(arg(), 0)),
-                Box::new(Arg(arg(), 0)),
+                Box::new(Arg(0)),
+                Box::new(Arg(0)),
             ),
         };
         let file2 = File {
@@ -72,8 +72,8 @@ use crate::read::{write, Error};
                 Box::new(Call(Identifier::of("square"), vec![Value(3)])),
                 )
         };
-        write(Identifier::of("square"), file1).await;
-        write(Identifier::of("main"), file2).await;
+        //write(Identifier::of("square"), file1).await;
+        //write(Identifier::of("main"), file2).await;
         //let res = evaluate_file(Identifier::of("test"), file, &[]).await?;
         //assert_eq!(res, 25);
         Ok(())

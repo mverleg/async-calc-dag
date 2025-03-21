@@ -3,6 +3,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, Hash)]
+#[serde(rename_all = "snake_case")]
 pub enum Op {
     Add,
     Sub,
@@ -17,18 +18,14 @@ pub enum Op {
     Or,
 }
 
-// just for json
-#[derive(Debug, Deserialize, Serialize)]
-pub struct arg();
-
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
-#[serde(untagged)]
+//#[serde(untagged)]
 pub enum Expr {
     Value(i64),
     BinOp(Op, Box<Expr>, Box<Expr>),
     If(Box<Expr>, Box<Expr>, Box<Expr>),
-    Arg(arg, u32),
+    Arg(u32),
     Call(Identifier, Vec<Expr>),
     Delay(Box<Expr>, u32),
 }

@@ -2,19 +2,10 @@
   "imports": [
     "square"
   ],
-  "expression": [
-    "Add",
-    [
-      "square",
-      [
-        4
-      ]
-    ],
-    [
-      "square",
-      [
-        3
-      ]
+  "expression": {
+    "bin_op": ["add",
+      {"call": ["square", [{"value": 4}]]},
+      {"call": ["square", [{"value": 3}]]}
     ]
-  ]
+  }
 }

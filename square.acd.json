@@ -2,15 +2,7 @@
   "imports": [
     "square"
   ],
-  "expression": [
-    "Mul",
-    [
-      [],
-      0
-    ],
-    [
-      [],
-      0
-    ]
-  ]
+  "expression": {
+    "bin_op": ["mul", {"arg": 0}, {"arg": 0}]
+  }
 }
