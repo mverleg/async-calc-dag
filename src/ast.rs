@@ -30,6 +30,7 @@ pub enum Expr {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct File {
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub imports: Vec<Identifier>,
     pub expression: Expr,
 }
