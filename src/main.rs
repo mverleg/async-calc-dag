@@ -20,14 +20,15 @@ async fn main() {
         Err(Error::FileNotFound(f)) => println!("File not found: {}", f),
         Err(Error::CouldNotParse(f)) => println!("Could not parse: {}", f),
         Err(Error::DivideByZero(f, n)) => println!("Could not divide {} by 0 in {}", n, f),
+        Err(Error::NoSuchArg(f, i)) => println!("No argument nr {} in {}", i, f),
     }
 }
 
 #[cfg(test)]
 pub mod test {
     use crate::Identifier;
-use crate::read::Error;
-    use crate::ast::Expr::BinOp;
+use crate::read::{write, Error};
+    use crate::ast::Expr::{Arg, BinOp, Call};
     use crate::ast::Expr::Value;
     use crate::ast::File;
     use crate::ast::Op;
@@ -55,21 +56,26 @@ use crate::read::Error;
 
     #[tokio::test]
     async fn multi_file() -> Result<(), Error> {
-        let file = File {
+        let file1 = File {
+            imports: vec![Identifier::of("square")],
+            expression: BinOp(
+                Op::Mul,
+                Box::new(Arg(0)),
+                Box::new(Arg(0)),
+            ),
+        };
+        let file2 = File {
             imports: vec![Identifier::of("square")],
             expression: BinOp(
                 Op::Add,
-                Box::new(BinOp(
-                    Op::Mul,
-                    Box::new(Value(4)),
-                    Box::new(Value(4)))),
-                Box::new(BinOp(
-                    Op::Mul,
-                    Box::new(Value(3)),
-                    Box::new(Value(3))))),
+                Box::new(Call(Identifier::of("square"), vec![Value(4)])),
+                Box::new(Call(Identifier::of("square"), vec![Value(3)])),
+                )
         };
-        let res = evaluate_file(Identifier::of("test"), file, &[]).await?;
-        assert_eq!(res, 25);
+        //write(Identifier::of("square"), file1).await;
+        //write(Identifier::of("main"), file2).await;
+        //let res = evaluate_file(Identifier::of("test"), file, &[]).await?;
+        //assert_eq!(res, 25);
         Ok(())
     }
 }

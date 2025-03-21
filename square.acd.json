@@ -1,7 +1,6 @@
 {
-  "expression": [
-    "Add",
-    ["Mul", [],4, 4],
-    ["Mul", 3, 3]
-  ]
+  "imports": [
+    "square"
+  ],
+  "expression": ["Mul", 0, 0]
 }

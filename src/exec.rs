@@ -2,7 +2,8 @@ use ::futures::future::try_join_all;
 use ::std::thread::sleep;
 use ::std::time::Duration;
 
-use crate::ast::{Expr, File};
+use crate::ast::Expr;
+use crate::ast::File;
 use crate::ast::Op;
 use crate::read::parse;
 use crate::read::Identifier;
@@ -48,7 +49,10 @@ async fn eval(context: &Context<'_>, expr: &Expr) -> Result<i64, Error> {
         },
         Expr::If(conf, yes, no) => if Box::pin(eval(context, conf)).await? != 0
                 { Box::pin(eval(context, yes)).await? } else { Box::pin(eval(context, no)).await? }
-        Expr::Arg(ix) => context.args.get(*ix as usize).map(|nr| *nr).unwrap_or(0),
+        Expr::Arg(ix) => match context.args.get(*ix as usize) {
+            None => return Err(Error::NoSuchArg(context.file_iden.clone(), *ix)),
+            Some(nr) => *nr,
+        },
         Expr::Call(iden, args) => {
             let arg_vals = try_join_all(args.into_iter().map(|a| eval(context, a))).await?;
             Box::pin(evaluate(iden.clone(), &arg_vals)).await?

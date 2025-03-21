@@ -1,5 +1,7 @@
 {
-  "imports": ["square"],
+  "imports": [
+    "square"
+  ],
   "expression": [
     "Add",
     ["square", [4]],
