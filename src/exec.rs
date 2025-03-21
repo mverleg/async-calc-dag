@@ -1,3 +1,4 @@
+
 use crate::ast::Expr;
 use crate::ast::Op;
 use crate::file::Error;
@@ -11,7 +12,7 @@ pub async fn evaluate(fs: &mut impl Fs, iden: Identifier, args: &[i64]) -> Resul
     let file = fs.read(&iden).await?;
     assert!(file.imports.is_empty());
     let context = Context { file_iden: iden, args };
-    eval(fs, &context, file.expression).await
+    eval(fs, &context, &file.expression).await
 }
 
 struct Context<'a> {

@@ -18,7 +18,7 @@ pub enum Op {
     Or,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "snake_case")]
 //#[serde(untagged)]
 pub enum Expr {
@@ -30,7 +30,7 @@ pub enum Expr {
     Delay(Box<Expr>, u32),
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct File {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub imports: Vec<Identifier>,

@@ -47,16 +47,15 @@ fn parse(iden: &Identifier, content: String) -> Result<File, Error> {
 }
 
 pub trait Fs: fmt::Debug {
-    async fn read(&mut self, iden: &Identifier) -> Result<&File, Error>;
+    async fn read(&mut self, iden: &Identifier) -> Result<File, Error>;
 }
 
 #[derive(Debug, Default)]
-pub struct DiskFs(pub Option<File>);
+pub struct DiskFs();
 
 impl Fs for DiskFs {
-    async fn read(&mut self, iden: &Identifier) -> Result<&File, Error> {
-        self.0 = Some(parse(&iden, read(&iden).await?)?);
-        Ok(self.0.as_ref().unwrap())
+    async fn read(&mut self, iden: &Identifier) -> Result<File, Error> {
+        parse(&iden, read(&iden).await?)
     }
 }
 
@@ -64,10 +63,10 @@ impl Fs for DiskFs {
 pub struct MockFs(pub HashMap<Identifier, File>);
 
 impl Fs for MockFs {
-    async fn read(&mut self, iden: &Identifier) -> Result<&File, Error> {
+    async fn read(&mut self, iden: &Identifier) -> Result<File, Error> {
         match self.0.get(iden) {
             None => Err(Error::FileNotFound(iden.clone())),
-            Some(file) => Ok(file)
+            Some(file) => Ok(file.clone())
         }
     }
 }

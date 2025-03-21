@@ -51,7 +51,7 @@ pub mod test {
                     Box::new(Value(3))))),
         };
         let file_iden = Identifier::of("test");
-        let mut fs = MockFs(vec![(file_iden, file)].into_iter().collect());
+        let mut fs = MockFs(vec![(file_iden.clone(), file)].into_iter().collect());
         let res = evaluate(&mut fs, file_iden, &[]).await?;
         assert_eq!(res, 25);
         Ok(())
@@ -68,17 +68,24 @@ pub mod test {
             ),
         };
         let file2 = File {
-            imports: vec![Identifier::of("square")],
+            imports: vec![],
             expression: BinOp(
                 Op::Add,
                 Box::new(Call(Identifier::of("square"), vec![Value(4)])),
                 Box::new(Call(Identifier::of("square"), vec![Value(3)])),
                 )
         };
+        let file1_iden = Identifier::of("main");
+        let file2_iden = Identifier::of("square");
+        let mut fs = MockFs(vec![
+            (file1_iden.clone(), file1),
+            (file2_iden, file2),
+        ].into_iter().collect());
+
         //write(Identifier::of("square"), file1).await;
         //write(Identifier::of("main"), file2).await;
-        //let res = evaluate_file(Identifier::of("test"), file, &[]).await?;
-        //assert_eq!(res, 25);
+        let res = evaluate(&mut fs, file1_iden, &[]).await?;
+        assert_eq!(res, 25);
         Ok(())
     }
 }
