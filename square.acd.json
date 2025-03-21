@@ -2,5 +2,15 @@
   "imports": [
     "square"
   ],
-  "expression": ["Mul", 0, 0]
+  "expression": [
+    "Mul",
+    [
+      [],
+      0
+    ],
+    [
+      [],
+      0
+    ]
+  ]
 }

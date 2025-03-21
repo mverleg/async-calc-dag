@@ -17,13 +17,18 @@ pub enum Op {
     Or,
 }
 
+// just for json
 #[derive(Debug, Deserialize, Serialize)]
+pub struct arg();
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 #[serde(untagged)]
 pub enum Expr {
     Value(i64),
     BinOp(Op, Box<Expr>, Box<Expr>),
     If(Box<Expr>, Box<Expr>, Box<Expr>),
-    Arg(u32),
+    Arg(arg, u32),
     Call(Identifier, Vec<Expr>),
     Delay(Box<Expr>, u32),
 }

@@ -4,7 +4,17 @@
   ],
   "expression": [
     "Add",
-    ["square", [4]],
-    ["square", [3]]
+    [
+      "square",
+      [
+        4
+      ]
+    ],
+    [
+      "square",
+      [
+        3
+      ]
+    ]
   ]
 }

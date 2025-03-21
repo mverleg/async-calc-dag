@@ -49,7 +49,7 @@ async fn eval(context: &Context<'_>, expr: &Expr) -> Result<i64, Error> {
         },
         Expr::If(conf, yes, no) => if Box::pin(eval(context, conf)).await? != 0
                 { Box::pin(eval(context, yes)).await? } else { Box::pin(eval(context, no)).await? }
-        Expr::Arg(ix) => match context.args.get(*ix as usize) {
+        Expr::Arg(_, ix) => match context.args.get(*ix as usize) {
             None => return Err(Error::NoSuchArg(context.file_iden.clone(), *ix)),
             Some(nr) => *nr,
         },
