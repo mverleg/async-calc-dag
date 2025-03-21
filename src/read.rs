@@ -1,6 +1,26 @@
-use tokio::fs;
+use std::fmt;
 use crate::ast::File;
-use crate::ast::Identifier;
+use serde::Deserialize;
+use serde::Serialize;
+use tokio::fs;
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Identifier {
+    pub value: String,
+}
+
+impl Identifier {
+    pub fn of(value: impl Into<String>) -> Self {
+        // should validate input
+        Self { value: value.into() }
+    }
+}
+
+impl fmt::Display for Identifier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum Error {
@@ -10,7 +30,7 @@ pub enum Error {
 }
 
 pub async fn read(iden: &Identifier) -> Result<String, Error> {
-    fs::read_to_string(&iden.value).await.map_err(|_| Error::FileNotFound(iden.clone()))
+    fs::read_to_string(format!("{}.acd.json", iden.value)).await.map_err(|_| Error::FileNotFound(iden.clone()))
 }
 
 pub async fn parse(iden: &Identifier, content: String) -> Result<File, Error> {

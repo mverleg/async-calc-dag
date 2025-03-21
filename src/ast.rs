@@ -1,17 +1,6 @@
+use crate::Identifier;
 use serde::Deserialize;
 use serde::Serialize;
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Identifier {
-    pub value: String,
-}
-
-impl Identifier {
-    pub fn of(value: impl Into<String>) -> Self {
-        // should validate input
-        Self { value: value.into() }
-    }
-}
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Op {
