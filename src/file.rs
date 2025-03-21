@@ -32,7 +32,7 @@ pub enum Error {
     NoSuchArg(Identifier, u32),
 }
 
-pub async fn read(iden: &Identifier) -> Result<String, Error> {
+async fn read(iden: &Identifier) -> Result<String, Error> {
     fs::read_to_string(format!("{}.acd.json", iden.value)).await.map_err(|_| Error::FileNotFound(iden.clone()))
 }
 
@@ -42,16 +42,16 @@ pub async fn write(iden: Identifier, file: File) {
     fs::write(format!("{}.acd.json", iden.value), json).await.unwrap();
 }
 
-pub fn parse(iden: &Identifier, content: String) -> Result<File, Error> {
+fn parse(iden: &Identifier, content: String) -> Result<File, Error> {
     serde_json::from_str(&content).map_err(|_| Error::CouldNotParse(iden.clone()))
 }
 
-trait Fs: fmt::Debug {
+pub trait Fs: fmt::Debug {
     async fn read(&mut self, iden: &Identifier) -> Result<&File, Error>;
 }
 
 #[derive(Debug, Default)]
-struct DiskFs(Option<File>);
+pub struct DiskFs(pub Option<File>);
 
 impl Fs for DiskFs {
     async fn read(&mut self, iden: &Identifier) -> Result<&File, Error> {
@@ -61,7 +61,7 @@ impl Fs for DiskFs {
 }
 
 #[derive(Debug)]
-struct MockFs(HashMap<Identifier, File>);
+pub struct MockFs(pub HashMap<Identifier, File>);
 
 impl Fs for MockFs {
     async fn read(&mut self, iden: &Identifier) -> Result<&File, Error> {

@@ -1,11 +1,11 @@
 use std::env::args;
 use crate::exec::evaluate;
-use crate::read::Error;
-use crate::read::Identifier;
+use crate::file::{DiskFs, Error};
+use crate::file::Identifier;
 
 mod ast;
 mod exec;
-mod read;
+mod file;
 
 #[tokio::main]
 async fn main() {
@@ -15,7 +15,8 @@ async fn main() {
     let arg_vals = argz
         .map(|s| s.parse().expect("Second and subsequent args should be integers if provided"))
         .collect::<Vec<_>>();
-    match evaluate(file, &arg_vals).await {
+    let mut fs = DiskFs::default();
+    match evaluate(&mut fs, file, &arg_vals).await {
         Ok(val) => println!("{}", val),
         Err(Error::FileNotFound(f)) => println!("File not found: {}", f),
         Err(Error::CouldNotParse(f)) => println!("Could not parse: {}", f),
@@ -27,12 +28,12 @@ async fn main() {
 #[cfg(test)]
 pub mod test {
     use crate::Identifier;
-    use crate::read::Error;
+    use crate::file::{Error, MockFs};
     use crate::ast::Expr::{Arg, BinOp, Call};
     use crate::ast::Expr::Value;
     use crate::ast::File;
     use crate::ast::Op;
-    use crate::exec::evaluate_file;
+    use crate::exec::evaluate;
 
     #[tokio::test]
     async fn single_file() -> Result<(), Error> {
@@ -49,7 +50,9 @@ pub mod test {
                     Box::new(Value(3)),
                     Box::new(Value(3))))),
         };
-        let res = evaluate_file(Identifier::of("test"), file, &[]).await?;
+        let file_iden = Identifier::of("test");
+        let mut fs = MockFs(vec![(file_iden, file)].into_iter().collect());
+        let res = evaluate(&mut fs, file_iden, &[]).await?;
         assert_eq!(res, 25);
         Ok(())
     }
