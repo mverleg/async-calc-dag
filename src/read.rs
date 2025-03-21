@@ -1,10 +1,11 @@
-use std::fmt;
 use crate::ast::File;
 use serde::Deserialize;
 use serde::Serialize;
+use std::collections::HashMap;
+use std::fmt;
 use tokio::fs;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash)]
 #[serde(transparent)]
 pub struct Identifier {
     pub value: String,
@@ -41,6 +42,32 @@ pub async fn write(iden: Identifier, file: File) {
     fs::write(format!("{}.acd.json", iden.value), json).await.unwrap();
 }
 
-pub async fn parse(iden: &Identifier, content: String) -> Result<File, Error> {
+pub fn parse(iden: &Identifier, content: String) -> Result<File, Error> {
     serde_json::from_str(&content).map_err(|_| Error::CouldNotParse(iden.clone()))
+}
+
+trait Fs: fmt::Debug {
+    async fn read(&mut self, iden: &Identifier) -> Result<&File, Error>;
+}
+
+#[derive(Debug, Default)]
+struct DiskFs(Option<File>);
+
+impl Fs for DiskFs {
+    async fn read(&mut self, iden: &Identifier) -> Result<&File, Error> {
+        self.0 = Some(parse(&iden, read(&iden).await?)?);
+        Ok(self.0.as_ref().unwrap())
+    }
+}
+
+#[derive(Debug)]
+struct MockFs(HashMap<Identifier, File>);
+
+impl Fs for MockFs {
+    async fn read(&mut self, iden: &Identifier) -> Result<&File, Error> {
+        match self.0.get(iden) {
+            None => Err(Error::FileNotFound(iden.clone())),
+            Some(file) => Ok(file)
+        }
+    }
 }

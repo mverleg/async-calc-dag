@@ -12,7 +12,7 @@ use crate::read::Error;
 
 pub async fn evaluate(iden: Identifier, args: &[i64]) -> Result<i64, Error> {
     let json = read(&iden).await?;
-    let file = parse(&iden, json).await?;
+    let file = parse(&iden, json)?;
     evaluate_file(iden, file, args).await
 }
 
