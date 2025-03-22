@@ -9,7 +9,9 @@ use ::std::time::Duration;
 
 pub async fn evaluate(fs: &impl Fs, iden: Identifier, args: &[i64]) -> Result<i64, Error> {
     let file = fs.read(&iden).await?;
-    assert!(file.imports.is_empty());
+    if !file.imports.is_empty() {
+        eprintln!("todo: make imports work ({iden})");
+    }
     let context = Context { file_iden: iden, args };
     eval(fs, &context, &file.expression).await
 }
@@ -42,7 +44,10 @@ async fn eval(fs: &impl Fs, context: &Context<'_>, expr: &Expr) -> Result<i64, E
         Expr::If(conf, yes, no) => if Box::pin(eval(fs, context, conf)).await? != 0
                 { Box::pin(eval(fs, context, yes)).await? } else { Box::pin(eval(fs, context, no)).await? }
         Expr::Arg(ix) => match context.args.get(*ix as usize) {
-            None => return Err(Error::NoSuchArg(context.file_iden.clone(), *ix)),
+            None => {
+                eprintln!("in {}: arg ix {ix} not found in {:?}", &context.file_iden, &context.args);
+                return Err(Error::NoSuchArg(context.file_iden.clone(), *ix))
+            },
             Some(nr) => *nr,
         },
         Expr::Call(iden, args) => {

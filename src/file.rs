@@ -64,6 +64,7 @@ pub struct MockFs(pub HashMap<Identifier, File>);
 
 impl Fs for MockFs {
     async fn read(&self, iden: &Identifier) -> Result<File, Error> {
+        eprintln!("reading {iden}");
         match self.0.get(iden) {
             None => Err(Error::FileNotFound(iden.clone())),
             Some(file) => Ok(file.clone())

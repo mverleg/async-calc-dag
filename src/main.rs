@@ -59,7 +59,7 @@ pub mod test {
 
     #[tokio::test]
     async fn multi_file() -> Result<(), Error> {
-        let file1 = File {
+        let square_file = File {
             imports: vec![Identifier::of("square")],
             expression: BinOp(
                 Op::Mul,
@@ -67,24 +67,24 @@ pub mod test {
                 Box::new(Arg(0)),
             ),
         };
-        let file2 = File {
+        let main_file = File {
             imports: vec![],
             expression: BinOp(
                 Op::Add,
                 Box::new(Call(Identifier::of("square"), vec![Value(4)])),
                 Box::new(Call(Identifier::of("square"), vec![Value(3)])),
-                )
+            )
         };
-        let file1_iden = Identifier::of("main");
-        let file2_iden = Identifier::of("square");
+        let main_iden = Identifier::of("main");
+        let square_iden = Identifier::of("square");
         let mut fs = MockFs(vec![
-            (file1_iden.clone(), file1),
-            (file2_iden, file2),
+            (square_iden, square_file),
+            (main_iden.clone(), main_file),
         ].into_iter().collect());
 
         //write(Identifier::of("square"), file1).await;
         //write(Identifier::of("main"), file2).await;
-        let res = evaluate(&mut fs, file1_iden, &[]).await?;
+        let res = evaluate(&mut fs, main_iden, &[]).await?;
         assert_eq!(res, 25);
         Ok(())
     }
