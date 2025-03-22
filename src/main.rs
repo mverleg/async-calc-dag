@@ -6,6 +6,7 @@ use std::env::args;
 mod ast;
 mod exec;
 mod file;
+mod lazy_async;
 
 #[tokio::main]
 async fn main() {
