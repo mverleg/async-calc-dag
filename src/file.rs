@@ -1,9 +1,10 @@
-use crate::ast::Ast;
-use serde::Deserialize;
-use serde::Serialize;
+use crate::common::Error;
+use crate::Identifier;
 use std::collections::HashMap;
 use std::fmt;
 use tokio::fs;
+use crate::ast::Ast;
+use crate::parse::unparse;
 
 async fn read(iden: &Identifier) -> Result<File, Error> {
     fs::read_to_string(format!("{}.acd.json", iden.value)).await
@@ -11,15 +12,21 @@ async fn read(iden: &Identifier) -> Result<File, Error> {
         .map_err(|_| Error::FileNotFound(iden.clone()))
 }
 
-#[allow(unused)]
-pub async fn write(iden: Identifier, file: Ast) {
-    let json = serde_json::to_string_pretty(&file).unwrap();
-    fs::write(format!("{}.acd.json", iden.value), json).await.unwrap();
-}
-
 #[derive(Debug)]
 pub struct File {
     json: String
+}
+
+impl File {
+    pub fn new(json: impl Into<String>) -> File {
+        File { json: json.into() }
+    }
+}
+
+impl File {
+    pub fn json(&self) -> &str {
+        &self.json
+    }
 }
 
 pub trait Fs: fmt::Debug {
@@ -35,9 +42,20 @@ impl Fs for DiskFs {
     }
 }
 
+#[cfg(test)]
 #[derive(Debug)]
 pub struct MockFs(pub HashMap<Identifier, File>);
 
+#[cfg(test)]
+impl MockFs {
+    pub fn new(asts: Vec<(Identifier, Ast)>) -> MockFs {
+        MockFs(asts.into_iter()
+            .map(|(iden, json)| (iden, unparse(json)))
+            .collect())
+    }
+}
+
+#[cfg(test)]
 impl Fs for MockFs {
     async fn read(&self, iden: &Identifier) -> Result<File, Error> {
         eprintln!("reading {iden}");

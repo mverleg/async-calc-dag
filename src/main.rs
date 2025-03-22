@@ -1,7 +1,6 @@
+use crate::common::{Error, Identifier};
 use crate::exec::evaluate;
 use crate::file::DiskFs;
-use crate::file::Error;
-use crate::file::Identifier;
 use ::std::env::args;
 
 mod ast;
@@ -32,12 +31,13 @@ async fn main() {
 
 #[cfg(test)]
 pub mod test {
+    use crate::ast::Ast;
     use crate::ast::Expr::Value;
     use crate::ast::Expr::{Arg, BinOp, Call};
-    use crate::ast::Ast;
     use crate::ast::Op;
+    use crate::common::Error;
     use crate::exec::evaluate;
-    use crate::file::{Error, MockFs};
+    use crate::file::MockFs;
     use crate::Identifier;
 
     #[tokio::test]
@@ -56,7 +56,7 @@ pub mod test {
                     Box::new(Value(3))))),
         };
         let file_iden = Identifier::of("test");
-        let mut fs = MockFs(vec![(file_iden.clone(), file)].into_iter().collect());
+        let mut fs = MockFs::new(vec![(file_iden.clone(), file)]);
         let res = evaluate(&mut fs, file_iden, &[]).await?;
         assert_eq!(res, 25);
         Ok(())
@@ -82,13 +82,10 @@ pub mod test {
         };
         let main_iden = Identifier::of("main");
         let square_iden = Identifier::of("square");
-        let mut fs = MockFs(vec![
+        let mut fs = MockFs::new(vec![
             (square_iden, square_file),
             (main_iden.clone(), main_file),
-        ].into_iter().collect());
-
-        //write(Identifier::of("square"), file1).await;
-        //write(Identifier::of("main"), file2).await;
+        ]);
         let res = evaluate(&mut fs, main_iden, &[]).await?;
         assert_eq!(res, 25);
         Ok(())
