@@ -1,4 +1,3 @@
-
 use crate::ast::Expr;
 use crate::ast::Op;
 use crate::file::Error;
@@ -8,7 +7,7 @@ use ::futures::future::try_join_all;
 use ::std::thread::sleep;
 use ::std::time::Duration;
 
-pub async fn evaluate(fs: &mut impl Fs, iden: Identifier, args: &[i64]) -> Result<i64, Error> {
+pub async fn evaluate(fs: &impl Fs, iden: Identifier, args: &[i64]) -> Result<i64, Error> {
     let file = fs.read(&iden).await?;
     assert!(file.imports.is_empty());
     let context = Context { file_iden: iden, args };
@@ -20,7 +19,7 @@ struct Context<'a> {
     args: &'a [i64],
 }
 
-async fn eval(fs: &mut impl Fs, context: &Context<'_>, expr: &Expr) -> Result<i64, Error> {
+async fn eval(fs: &impl Fs, context: &Context<'_>, expr: &Expr) -> Result<i64, Error> {
     Ok(match expr {
         Expr::Value(nr) => *nr,
         Expr::BinOp(op, left, right) => {

@@ -1,7 +1,7 @@
-use std::env::args;
 use crate::exec::evaluate;
-use crate::file::{DiskFs, Error};
 use crate::file::Identifier;
+use crate::file::{DiskFs, Error};
+use std::env::args;
 
 mod ast;
 mod exec;
@@ -27,13 +27,13 @@ async fn main() {
 
 #[cfg(test)]
 pub mod test {
-    use crate::Identifier;
-    use crate::file::{Error, MockFs};
-    use crate::ast::Expr::{Arg, BinOp, Call};
     use crate::ast::Expr::Value;
+    use crate::ast::Expr::{Arg, BinOp, Call};
     use crate::ast::File;
     use crate::ast::Op;
     use crate::exec::evaluate;
+    use crate::file::{Error, MockFs};
+    use crate::Identifier;
 
     #[tokio::test]
     async fn single_file() -> Result<(), Error> {
