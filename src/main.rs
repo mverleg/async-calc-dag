@@ -8,6 +8,8 @@ mod ast;
 mod parse;
 mod exec;
 mod file;
+mod common;
+mod core;
 mod lazy_async;
 
 #[tokio::main]
