@@ -1,9 +1,11 @@
 use crate::exec::evaluate;
+use crate::file::DiskFs;
+use crate::file::Error;
 use crate::file::Identifier;
-use crate::file::{DiskFs, Error};
-use std::env::args;
+use ::std::env::args;
 
 mod ast;
+mod parse;
 mod exec;
 mod file;
 mod lazy_async;
@@ -30,7 +32,7 @@ async fn main() {
 pub mod test {
     use crate::ast::Expr::Value;
     use crate::ast::Expr::{Arg, BinOp, Call};
-    use crate::ast::File;
+    use crate::ast::Ast;
     use crate::ast::Op;
     use crate::exec::evaluate;
     use crate::file::{Error, MockFs};
@@ -38,7 +40,7 @@ pub mod test {
 
     #[tokio::test]
     async fn single_file() -> Result<(), Error> {
-        let file = File {
+        let file = Ast {
             imports: vec![],
             expression: BinOp(
                 Op::Add,
@@ -60,7 +62,7 @@ pub mod test {
 
     #[tokio::test]
     async fn multi_file() -> Result<(), Error> {
-        let square_file = File {
+        let square_file = Ast {
             imports: vec![Identifier::of("square")],
             expression: BinOp(
                 Op::Mul,
@@ -68,7 +70,7 @@ pub mod test {
                 Box::new(Arg(0)),
             ),
         };
-        let main_file = File {
+        let main_file = Ast {
             imports: vec![],
             expression: BinOp(
                 Op::Add,

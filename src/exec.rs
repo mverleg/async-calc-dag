@@ -3,17 +3,18 @@ use crate::ast::Op;
 use crate::file::Error;
 use crate::file::Fs;
 use crate::file::Identifier;
+use crate::parse::parse;
 use ::futures::future::try_join_all;
 use ::std::thread::sleep;
 use ::std::time::Duration;
 
 pub async fn evaluate(fs: &impl Fs, iden: Identifier, args: &[i64]) -> Result<i64, Error> {
-    let file = fs.read(&iden).await?;
-    if !file.imports.is_empty() {
+    let ast = parse(&iden, fs.read(&iden).await?)?;
+    if !ast.imports.is_empty() {
         eprintln!("todo: make imports work ({iden})");
     }
     let context = Context { file_iden: iden, args };
-    eval(fs, &context, &file.expression).await
+    eval(fs, &context, &ast.expression).await
 }
 
 struct Context<'a> {

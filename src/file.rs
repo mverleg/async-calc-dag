@@ -1,4 +1,4 @@
-use crate::ast::File;
+use crate::ast::Ast;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -32,18 +32,21 @@ pub enum Error {
     NoSuchArg(Identifier, u32),
 }
 
-async fn read(iden: &Identifier) -> Result<String, Error> {
-    fs::read_to_string(format!("{}.acd.json", iden.value)).await.map_err(|_| Error::FileNotFound(iden.clone()))
+async fn read(iden: &Identifier) -> Result<File, Error> {
+    fs::read_to_string(format!("{}.acd.json", iden.value)).await
+        .map(|json| File { json })
+        .map_err(|_| Error::FileNotFound(iden.clone()))
 }
 
 #[allow(unused)]
-pub async fn write(iden: Identifier, file: File) {
+pub async fn write(iden: Identifier, file: Ast) {
     let json = serde_json::to_string_pretty(&file).unwrap();
     fs::write(format!("{}.acd.json", iden.value), json).await.unwrap();
 }
 
-fn parse(iden: &Identifier, content: String) -> Result<File, Error> {
-    serde_json::from_str(&content).map_err(|_| Error::CouldNotParse(iden.clone()))
+#[derive(Debug)]
+pub struct File {
+    json: String
 }
 
 pub trait Fs: fmt::Debug {
@@ -55,7 +58,7 @@ pub struct DiskFs();
 
 impl Fs for DiskFs {
     async fn read(&self, iden: &Identifier) -> Result<File, Error> {
-        parse(&iden, read(&iden).await?)
+        Ok(read(&iden).await?)
     }
 }
 
@@ -67,7 +70,7 @@ impl Fs for MockFs {
         eprintln!("reading {iden}");
         match self.0.get(iden) {
             None => Err(Error::FileNotFound(iden.clone())),
-            Some(file) => Ok(file.clone())
+            Some(file) => Ok(File { json: file.json.clone() })
         }
     }
 }
