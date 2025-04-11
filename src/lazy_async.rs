@@ -1,8 +1,8 @@
-use ::futures::lock::Mutex;
+use ::futures::lock::Mutex as AsyncMutex;
 use ::futures::lock::MutexGuard;
 
 pub struct ALazy<T> {
-    value: Mutex<T>,
+    value: AsyncMutex<T>,
 }
 
 impl <T> ALazy<T> {
