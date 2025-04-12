@@ -1,3 +1,4 @@
+use scc::hash_map::Entry;
 use crate::ast::Ast;
 use crate::common::Error;
 use crate::common::Identifier;
@@ -36,18 +37,14 @@ impl <T: Mode> Core<T> {
     // track which dependencies used by whom
     // set flag to detect cycles?
     // cache the result
-    pub async fn read(&mut self, iden: &Identifier) -> Result<File, Error> {
+    pub async fn read(&self, iden: &Identifier) -> Result<File, Error> {
         // TODO @mverleg:
         // - core must be used across threads, don't take &mut
         // - how to do cache key lookup efficiently? just hashmap for now?
-        let ix = match self.files.get(iden) {
-            Some(ix_entry) => *ix_entry.get(),
-            None => {
-                // try again but with entry (two-step to avoid clone)
-                self.files_keys.entry(iden.clone()).or_insert()
-                // TODO @mverleg: need to choose index based on where value will go
-                // TODO @mverleg: but what about races? is key locked while entry is held?
-            }
+        let file = match self.files.entry(iden.clone()) {
+            // ^ this clone is undesirable, but whole datastructure will likely be optimized anyway
+            Entry::Occupied(occupied) => occupied.get(),
+            Entry::Vacant(vacant) => vacant.insert_entry(ALazy::new_empty()).get(),
         };
         self.fs.read(iden).await
     }
