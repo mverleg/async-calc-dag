@@ -7,15 +7,18 @@ use ::std::sync::Arc;
 
 // TODO: this could probably be more efficient by using the fact that we can only go from empty to full and never back, e.g. double checked atomic
 pub struct ALazy<T> {
-    value: Arc<AsyncMutex<Option<T>>>,
+    value: Arc<AsyncMutex<Option<Result<T, Error>>>>,
 }
 
 impl <T> ALazy<T> {
+    // It seems nice to pass the initializer into the factory method, since that nicely
+    // models that it should happen no more and no less than one time. However, we should
+    // put the ALazy into a container before it's finished constructing.
     pub async fn new_empty() -> Result<Self, Error> {
         ALazy { value: Arc::new(AsyncMutex::new(None)) }.await
     }
 
-    pub async fn get(&self) -> MutexGuard<'_, Result<T, Error>> {
+    pub async fn get(&self) -> &Result<T, Error> {
         self.value.lock().await
     }
 
