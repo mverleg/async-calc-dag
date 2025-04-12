@@ -27,6 +27,7 @@ pub struct Core<T: Mode> {
     files: scc::HashMap<Identifier, ALazy<File>>,
     asts: scc::HashMap<Identifier, ALazy<Ast>>,
     output: scc::HashMap<Identifier, ALazy<Result<i64, Error>>>,
+    // TODO: can data structure be optimized? or jut make sure to not borrow map entries long?
 }
 
 impl <T: Mode> Core<T> {
@@ -39,7 +40,7 @@ impl <T: Mode> Core<T> {
         // TODO @mverleg:
         // - core must be used across threads, don't take &mut
         // - how to do cache key lookup efficiently? just hashmap for now?
-        let ix = match self.files_keys.get(iden) {
+        let ix = match self.files.get(iden) {
             Some(ix_entry) => *ix_entry.get(),
             None => {
                 // try again but with entry (two-step to avoid clone)
