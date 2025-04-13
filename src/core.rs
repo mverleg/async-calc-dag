@@ -1,13 +1,13 @@
 use crate::ast::Ast;
-use crate::common::{Error, Share};
+use crate::common::Error;
 use crate::common::Identifier;
+use crate::common::Share;
+use crate::file::DiskFs;
 use crate::file::File;
 use crate::file::Fs;
-use crate::file::DiskFs;
 use crate::file::MockFs;
 use crate::lazy_async::ALazy;
 use crate::parse::parse;
-use scc::hash_map::Entry;
 
 pub trait Mode {
     type FsType: Fs;

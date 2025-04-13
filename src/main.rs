@@ -14,6 +14,7 @@ mod file;
 mod common;
 mod core;
 mod lazy_async;
+mod cache;
 
 #[tokio::main]
 async fn main() {
