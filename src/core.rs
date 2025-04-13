@@ -2,7 +2,6 @@ use crate::ast::Ast;
 use crate::cache::Cache;
 use crate::common::Error;
 use crate::common::Identifier;
-use crate::common::Share;
 use crate::file::DiskFs;
 use crate::file::File;
 use crate::file::Fs;
@@ -27,8 +26,8 @@ impl Mode for Test {
 pub struct Core<T: Mode> {
     fs: <T as Mode>::FsType,
     files: Cache<Identifier, File>,
-    asts: scc::HashMap<Identifier, ALazy<Ast>>,
-    output: scc::HashMap<Identifier, ALazy<Result<i64, Error>>>,
+    asts: Cache<Identifier, ALazy<Ast>>,
+    output: Cache<Identifier, ALazy<Result<i64, Error>>>,
     // TODO: can data structure be optimized? or jut make sure to not borrow map entries long?
 }
 

@@ -1,4 +1,5 @@
 use std::fmt;
+use hipstr::{HipStr, LocalHipStr};
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -6,13 +7,13 @@ use serde::Serialize;
 #[serde(transparent)]
 // TODO: is it useful to cache the hashcode?
 pub struct Identifier {
-    pub value: String,
+    pub value: LocalHipStr<'static>,
 }
 
 impl Identifier {
     pub fn of(value: impl Into<String>) -> Self {
         // should validate input
-        Self { value: value.into() }
+        Self { value: LocalHipStr::from(value.into()) }
     }
 }
 
