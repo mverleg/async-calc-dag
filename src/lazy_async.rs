@@ -1,4 +1,4 @@
-use crate::common::Error;
+use crate::common::{Error, Share};
 use ::std::sync::Arc;
 use ::tokio::sync::OnceCell;
 // TODO @mverleg: how to make somewhat sure there is no deadlock if the creator of ALazy doesn't put a value in?
@@ -19,5 +19,11 @@ impl <T> ALazy<T> {
     pub async fn get<F>(&self, f: impl FnOnce() -> F) -> &Result<T, Error>
             where F: Future<Output=Result<T, Error>> {
         self.value.get_or_init(f).await
+    }
+}
+
+impl <T> Share for ALazy<T> {
+    fn share(&self) -> Self {
+        ALazy { value: self.value.clone() }
     }
 }

@@ -1,12 +1,12 @@
-use scc::hash_map::Entry;
 use crate::ast::Ast;
-use crate::common::Error;
+use crate::common::{Error, Share};
 use crate::common::Identifier;
-use crate::file::{DiskFs, MockFs};
 use crate::file::File;
 use crate::file::Fs;
+use crate::file::{DiskFs, MockFs};
 use crate::lazy_async::ALazy;
 use crate::parse::parse;
+use scc::hash_map::Entry;
 
 pub trait Mode {
     type FsType: Fs;
@@ -41,11 +41,13 @@ impl <T: Mode> Core<T> {
         // - core must be used across threads, don't take &mut
         // - how to do cache key lookup efficiently? just hashmap for now?
         let file = match self.files.entry(iden.clone()) {
-            // ^ this clone is undesirable, but whole datastructure will likely be optimized anyway
-            Entry::Occupied(occupied) => occupied.get(),
-            Entry::Vacant(vacant) => vacant.insert_entry(ALazy::new()).get(),
+            // ^ this clone is undesirable, but whole data structure will likely be optimized anyway
+            Entry::Occupied(occupied) =>
+                occupied.get().share(),
+            Entry::Vacant(vacant) =>
+                vacant.insert_entry(ALazy::new()).get().share(),
         };
-        self.fs.read(iden).await
+        file.get(|| self.fs.read(iden)).await.share()
     }
 
     pub async fn parse(&mut self, iden: &Identifier, content: File) -> Result<Ast, Error> {

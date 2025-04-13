@@ -1,26 +1,33 @@
 use crate::ast::Ast;
-use crate::common::Error;
+use crate::common::{Error, Share};
 use crate::parse::unparse;
 use crate::Identifier;
 use std::collections::HashMap;
 use std::fmt;
+use std::sync::Arc;
 use tokio::fs;
 use tokio::sync::Mutex;
 
 async fn read(iden: &Identifier) -> Result<File, Error> {
     fs::read_to_string(format!("{}.acd.json", iden.value)).await
-        .map(|json| File { json })
+        .map(|json| File { json: Arc::new(json) })
         .map_err(|_| Error::FileNotFound(iden.clone()))
 }
 
 #[derive(Debug)]
 pub struct File {
-    json: String
+    json: Arc<String>,
 }
 
 impl File {
     pub fn new(json: impl Into<String>) -> File {
-        File { json: json.into() }
+        File { json: Arc::new(json.into()) }
+    }
+}
+
+impl Share for File {
+    fn share(&self) -> File {
+        File { json: self.json.clone() }
     }
 }
 
@@ -47,6 +54,7 @@ impl Fs for DiskFs {
 pub struct MockFs(pub HashMap<Identifier, Mutex<Option<File>>>);
 
 impl MockFs {
+    #[allow(unused)]
     pub fn new(asts: Vec<(Identifier, Ast)>) -> MockFs {
         MockFs(asts.into_iter()
             .map(|(iden, json)| (iden, Mutex::new(Some(unparse(json)))))
