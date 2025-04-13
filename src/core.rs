@@ -43,9 +43,9 @@ impl <T: Mode> Core<T> {
         // - how to do cache key lookup efficiently? just hashmap for now?
         let file = match self.files.entry(iden.clone()) {
             // ^ this clone is undesirable, but whole data structure will likely be optimized anyway
-            Entry::Occupied(occupied) =>
+            scc::hash_map::Entry::Occupied(occupied) =>
                 occupied.get().share(),
-            Entry::Vacant(vacant) =>
+            scc::hash_map::Entry::Vacant(vacant) =>
                 vacant.insert_entry(ALazy::new()).get().share(),
         };
         file.get(|| self.fs.read(iden)).await.share()
