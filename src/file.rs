@@ -2,10 +2,10 @@ use crate::ast::Ast;
 use crate::common::Error;
 use crate::parse::unparse;
 use crate::Identifier;
-use futures::lock::Mutex;
 use std::collections::HashMap;
 use std::fmt;
 use tokio::fs;
+use tokio::sync::Mutex;
 
 async fn read(iden: &Identifier) -> Result<File, Error> {
     fs::read_to_string(format!("{}.acd.json", iden.value)).await
@@ -43,11 +43,9 @@ impl Fs for DiskFs {
     }
 }
 
-#[cfg(test)]
 #[derive(Debug)]
 pub struct MockFs(pub HashMap<Identifier, Mutex<Option<File>>>);
 
-#[cfg(test)]
 impl MockFs {
     pub fn new(asts: Vec<(Identifier, Ast)>) -> MockFs {
         MockFs(asts.into_iter()
@@ -56,7 +54,6 @@ impl MockFs {
     }
 }
 
-#[cfg(test)]
 impl Fs for MockFs {
     async fn read(&self, iden: &Identifier) -> Result<File, Error> {
         let Some(file_guard) = self.0.get(iden) else {

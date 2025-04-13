@@ -2,10 +2,9 @@ use scc::hash_map::Entry;
 use crate::ast::Ast;
 use crate::common::Error;
 use crate::common::Identifier;
-use crate::file::DiskFs;
+use crate::file::{DiskFs, MockFs};
 use crate::file::File;
 use crate::file::Fs;
-use crate::file::MockFs;
 use crate::lazy_async::ALazy;
 use crate::parse::parse;
 
@@ -44,7 +43,7 @@ impl <T: Mode> Core<T> {
         let file = match self.files.entry(iden.clone()) {
             // ^ this clone is undesirable, but whole datastructure will likely be optimized anyway
             Entry::Occupied(occupied) => occupied.get(),
-            Entry::Vacant(vacant) => vacant.insert_entry(ALazy::new_empty()).get(),
+            Entry::Vacant(vacant) => vacant.insert_entry(ALazy::new()).get(),
         };
         self.fs.read(iden).await
     }
