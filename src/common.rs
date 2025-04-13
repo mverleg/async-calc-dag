@@ -4,6 +4,7 @@ use serde::Serialize;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash)]
 #[serde(transparent)]
+// TODO: is it useful to cache the hashcode?
 pub struct Identifier {
     pub value: String,
 }

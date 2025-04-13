@@ -1,4 +1,5 @@
 use crate::ast::Ast;
+use crate::cache::Cache;
 use crate::common::Error;
 use crate::common::Identifier;
 use crate::common::Share;
@@ -25,7 +26,7 @@ impl Mode for Test {
 
 pub struct Core<T: Mode> {
     fs: <T as Mode>::FsType,
-    files: scc::HashMap<Identifier, ALazy<File>>,
+    files: Cache<Identifier, File>,
     asts: scc::HashMap<Identifier, ALazy<Ast>>,
     output: scc::HashMap<Identifier, ALazy<Result<i64, Error>>>,
     // TODO: can data structure be optimized? or jut make sure to not borrow map entries long?
@@ -37,18 +38,8 @@ impl <T: Mode> Core<T> {
     // track which dependencies used by whom
     // set flag to detect cycles?
     // cache the result
-    pub async fn read(&self, iden: &Identifier) -> Result<File, Error> {
-        // TODO @mverleg:
-        // - core must be used across threads, don't take &mut
-        // - how to do cache key lookup efficiently? just hashmap for now?
-        let file = match self.files.entry(iden.clone()) {
-            // ^ this clone is undesirable, but whole data structure will likely be optimized anyway
-            scc::hash_map::Entry::Occupied(occupied) =>
-                occupied.get().share(),
-            scc::hash_map::Entry::Vacant(vacant) =>
-                vacant.insert_entry(ALazy::new()).get().share(),
-        };
-        file.get(|| self.fs.read(iden)).await.share()
+    pub async fn read(&self, iden: &Identifier) -> &Result<File, Error> {
+        self.files.get(iden, || self.fs.read(iden)).await
     }
 
     pub async fn parse(&mut self, iden: &Identifier, content: File) -> Result<Ast, Error> {

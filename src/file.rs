@@ -1,5 +1,6 @@
 use crate::ast::Ast;
-use crate::common::{Error, Share};
+use crate::common::Error;
+use crate::common::Share;
 use crate::parse::unparse;
 use crate::Identifier;
 use std::collections::HashMap;

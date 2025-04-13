@@ -1,5 +1,5 @@
 use std::hash::Hash;
-use crate::common::Error;
+use crate::common::{Error, Share};
 use crate::common::Identifier;
 use crate::file::File;
 use crate::lazy_async::ALazy;
@@ -41,14 +41,16 @@ impl <K, V> Cache<K, V> {
     }
 }
 
-impl <K: Eq + Hash, V> Cache<K, V> {
+// TODO: avoid the Clone bound? need a method on scc::HashMap that takes entry reference and does clone itself only if needed
+impl <K: Eq + Hash + Clone, V> Cache<K, V> {
     // init itself must be async?
     pub async fn get<F>(&self, key: &K, init: impl FnOnce() -> F) -> &Result<V, Error>
             where F: Future<Output=Result<V, Error>> {
-        let ix = match self.lookup.entry(key) {
-            scc::hash_map::Entry::Occupied(occupied) => *occupied.get(),
-            scc::hash_map::Entry::Vacant(vacant) => self.data.push(ALazy::new()),
-        };
+        let ix = *match self.lookup.entry(key.clone()) {
+            scc::hash_map::Entry::Occupied(occupied) => occupied,
+            scc::hash_map::Entry::Vacant(vacant) =>
+                vacant.insert_entry(self.data.push(ALazy::new())),
+        }.get();
         self.data[ix].get(init).await
     }
 }
