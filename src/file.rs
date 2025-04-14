@@ -1,5 +1,5 @@
 use crate::ast::Ast;
-use crate::common::Error;
+use crate::common::{CacheId, Error};
 use crate::common::Share;
 use crate::parse::unparse;
 use crate::Identifier;
@@ -7,21 +7,21 @@ use ::std::collections::HashMap;
 use ::std::fmt;
 use ::tokio::fs;
 use ::tokio::sync::Mutex;
+use arcstr::ArcStr;
 
 async fn read(iden: &Identifier) -> Result<File, Error> {
     fs::read_to_string(format!("{}.acd.json", iden.value)).await
-        .map(|json| File { json })
+        .map(|json| File { json: ArcStr::from(json) })
         .map_err(|_| Error::FileNotFound(iden.clone()))
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct File {
-    // TODO @mverleg: have some kind of fast identity, like name+timestamp? or just pre-compute string hash
-    json: String,
+    json: ArcStr,
 }
 
 impl File {
-    pub fn new(json: impl Into<String>) -> File {
+    pub fn new(json: impl Into<ArcStr>) -> File {
         File { json: json.into() }
     }
 }
@@ -38,6 +38,15 @@ impl File {
     }
 }
 
+impl CacheId for File {
+    type Uid = ArcStr;
+    // TODO @mverleg: have some kind of fast identity, like name+timestamp? or just pre-compute string hash
+
+    fn id(&self) -> Self::Uid {
+        self.json.clone()
+    }
+}
+
 pub trait Fs: fmt::Debug {
     async fn read(&self, iden: &Identifier) -> Result<File, Error>;
 }
@@ -45,14 +54,14 @@ pub trait Fs: fmt::Debug {
 #[derive(Debug, Default)]
 pub struct DiskFs();
 
+#[derive(Debug)]
+pub struct MockFs(pub HashMap<Identifier, Mutex<Option<File>>>);
+
 impl Fs for DiskFs {
     async fn read(&self, iden: &Identifier) -> Result<File, Error> {
         Ok(read(&iden).await?)
     }
 }
-
-#[derive(Debug)]
-pub struct MockFs(pub HashMap<Identifier, Mutex<Option<File>>>);
 
 impl MockFs {
     #[allow(unused)]

@@ -4,7 +4,7 @@ use hipstr::{HipStr, LocalHipStr};
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash)]
 #[serde(transparent)]
 // TODO: is it useful to cache the hashcode?
 pub struct Identifier {
