@@ -3,7 +3,7 @@ use crate::file::File;
 use crate::Error;
 use crate::Identifier;
 
-pub fn parse(iden: &Identifier, content: File) -> Result<Ast, Error> {
+pub fn parse(iden: &Identifier, content: &File) -> Result<Ast, Error> {
     serde_json::from_str(content.json()).map_err(|_| Error::CouldNotParse(iden.clone()))
 }
 

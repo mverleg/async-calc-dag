@@ -15,8 +15,9 @@ async fn read(iden: &Identifier) -> Result<File, Error> {
         .map_err(|_| Error::FileNotFound(iden.clone()))
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct File {
+    // TODO @mverleg: have some kind of fast identity, like name+timestamp? or just pre-compute string hash
     json: Arc<String>,
 }
 

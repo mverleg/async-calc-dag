@@ -9,7 +9,7 @@ use ::std::time::Duration;
 use crate::common::Error;
 
 pub async fn evaluate(fs: &impl Fs, iden: Identifier, args: &[i64]) -> Result<i64, Error> {
-    let ast = parse(&iden, fs.read(&iden).await?)?;
+    let ast = parse(&iden, &fs.read(&iden).await?)?;
     if !ast.imports.is_empty() {
         eprintln!("todo: make imports work ({iden})");
     }

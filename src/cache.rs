@@ -44,14 +44,15 @@ impl <K, V> Cache<K, V> {
 // TODO: avoid the Clone bound? need a method on scc::HashMap that takes entry reference and does clone itself only if needed
 impl <K: Eq + Hash + Clone, V> Cache<K, V> {
     // init itself must be async?
-    pub async fn get<F>(&self, key: &K, init: impl FnOnce() -> F) -> &Result<V, Error>
+    pub async fn get<F>(&self, key: &K, init: impl FnOnce(&K) -> F) -> &Result<V, Error>
             where F: Future<Output=Result<V, Error>> {
+        // TODO: how to statically ensure that F only depends on `key`? or is that core's job?
         let ix = *match self.lookup.entry(key.clone()) {
             scc::hash_map::Entry::Occupied(occupied) => occupied,
             scc::hash_map::Entry::Vacant(vacant) =>
                 vacant.insert_entry(self.data.push(ALazy::new())),
         }.get();
-        self.data[ix].get(init).await
+        self.data[ix].get(|| init(key)).await
     }
 }
 
