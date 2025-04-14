@@ -3,27 +3,26 @@ use crate::common::Error;
 use crate::common::Share;
 use crate::parse::unparse;
 use crate::Identifier;
-use std::collections::HashMap;
-use std::fmt;
-use std::sync::Arc;
-use tokio::fs;
-use tokio::sync::Mutex;
+use ::std::collections::HashMap;
+use ::std::fmt;
+use ::tokio::fs;
+use ::tokio::sync::Mutex;
 
 async fn read(iden: &Identifier) -> Result<File, Error> {
     fs::read_to_string(format!("{}.acd.json", iden.value)).await
-        .map(|json| File { json: Arc::new(json) })
+        .map(|json| File { json })
         .map_err(|_| Error::FileNotFound(iden.clone()))
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct File {
     // TODO @mverleg: have some kind of fast identity, like name+timestamp? or just pre-compute string hash
-    json: Arc<String>,
+    json: String,
 }
 
 impl File {
     pub fn new(json: impl Into<String>) -> File {
-        File { json: Arc::new(json.into()) }
+        File { json: json.into() }
     }
 }
 

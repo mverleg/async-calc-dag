@@ -1,9 +1,10 @@
 use std::fmt;
+use std::hash::Hash;
 use hipstr::{HipStr, LocalHipStr};
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(transparent)]
 // TODO: is it useful to cache the hashcode?
 pub struct Identifier {
@@ -37,6 +38,11 @@ impl <T: Share> Share for Result<T, Error> {
     }
 }
 
+pub trait CacheId {
+    type Uid: Eq + Hash;
+
+    fn id(&self) -> Self::Uid;
+}
 
 #[derive(Debug, Clone)]
 pub enum Error {
