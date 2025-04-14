@@ -48,7 +48,7 @@ impl <K: Eq + Hash, V> Cache<K, V> {
     /// - If it has already been computed, return it
     /// - If it is currently being computed, wait (aync)
     /// - Otherwise (not computed yet), compute it now - only in this case is `init` called
-    pub async fn get<A, F>(&self, args: &A, init: fn(&A) -> F) -> &Result<V, Error>
+    pub async fn get<A, F>(&self, args: A, init: fn(A) -> F) -> &Result<V, Error>
             where A: CacheId<Uid=K>, F: Future<Output=Result<V, Error>> {
         // TODO: how to statically ensure that F only depends on `key`? or is that core's job?
         let ix = *match self.lookup.entry(args.id()) {

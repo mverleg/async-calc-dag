@@ -8,6 +8,7 @@ use ::std::fmt;
 use ::tokio::fs;
 use ::tokio::sync::Mutex;
 use arcstr::ArcStr;
+use hipstr::LocalHipStr;
 
 async fn read(iden: &Identifier) -> Result<File, Error> {
     fs::read_to_string(format!("{}.acd.json", iden.value)).await
@@ -47,7 +48,7 @@ impl CacheId for File {
     }
 }
 
-pub trait Fs: fmt::Debug {
+pub trait Fs: fmt::Debug where for<'a> &'a Self: CacheId {
     async fn read(&self, iden: &Identifier) -> Result<File, Error>;
 }
 
@@ -57,7 +58,16 @@ pub struct DiskFs();
 #[derive(Debug)]
 pub struct MockFs(pub HashMap<Identifier, Mutex<Option<File>>>);
 
-impl Fs for DiskFs {
+impl CacheId for DiskFs {
+    type Uid = LocalHipStr<'static>;
+
+    fn id(&self) -> Self::Uid {
+        // TODO: replace by real path
+        LocalHipStr::from("/path/to/fs")
+    }
+}
+
+impl <'a> Fs for &'a DiskFs {
     async fn read(&self, iden: &Identifier) -> Result<File, Error> {
         Ok(read(&iden).await?)
     }
@@ -69,6 +79,15 @@ impl MockFs {
         MockFs(asts.into_iter()
             .map(|(iden, json)| (iden, Mutex::new(Some(unparse(json)))))
             .collect())
+    }
+}
+
+impl <'a> CacheId for &'a MockFs {
+    type Uid = ();
+
+    fn id(&self) -> Self::Uid {
+        // TODO: probably each mock should be different, but it hasn't come up
+        ()
     }
 }
 

@@ -48,6 +48,14 @@ pub trait CacheId {
     fn id(&self) -> Self::Uid;
 }
 
+impl CacheId for Identifier {
+    type Uid = LocalHipStr<'static>;
+
+    fn id(&self) -> Self::Uid {
+        self.value.clone()
+    }
+}
+
 impl <A: CacheId, B: CacheId> CacheId for (A, B) {
     type Uid = (A::Uid, B::Uid);
 
