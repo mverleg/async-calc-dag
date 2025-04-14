@@ -38,10 +38,31 @@ impl <T: Share> Share for Result<T, Error> {
     }
 }
 
+/// The id must exactly identify the data.
+/// - Using too little will give mismatched caceh hits, causing strange bugs
+/// - Using too much is hard since this trait is a projection, but would lead to cache misses
+/// - This is used often, so both `id` and the result's hashcode should be cheap
 pub trait CacheId {
     type Uid: Eq + Hash;
 
     fn id(&self) -> Self::Uid;
+}
+
+impl <A: CacheId, B: CacheId> CacheId for (A, B) {
+    type Uid = (A::Uid, B::Uid);
+
+    fn id(&self) -> Self::Uid {
+        (self.0.id(), self.1.id())
+    }
+}
+
+// TODO mverleg: do a macro or something
+impl <A: CacheId, B: CacheId, C: CacheId> CacheId for (A, B, C) {
+    type Uid = (A::Uid, B::Uid, C::Uid);
+
+    fn id(&self) -> Self::Uid {
+        (self.0.id(), self.1.id(), self.2.id())
+    }
 }
 
 #[derive(Debug, Clone)]

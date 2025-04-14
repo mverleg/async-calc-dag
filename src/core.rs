@@ -38,7 +38,7 @@ impl <T: Mode> Core<T> {
     // set flag to detect cycles?
     // cache the result
     pub async fn read(&self, iden: &Identifier) -> &Result<File, Error> {
-        self.files.get(iden, |key| self.fs.read(key)).await
+        self.files.get(&(self.fs, iden), |key| key.0.read(key.1)).await
     }
 
     pub async fn parse(&mut self, iden: &Identifier, content: &File) -> Result<Ast, Error> {

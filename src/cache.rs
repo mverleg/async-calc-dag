@@ -1,5 +1,5 @@
 use std::hash::Hash;
-use crate::common::{Error, Share};
+use crate::common::{CacheId, Error, Share};
 use crate::common::Identifier;
 use crate::file::File;
 use crate::lazy_async::ALazy;
@@ -48,22 +48,15 @@ impl <K: Eq + Hash, V> Cache<K, V> {
     /// - If it has already been computed, return it
     /// - If it is currently being computed, wait (aync)
     /// - Otherwise (not computed yet), compute it now - only in this case is `init` called
-    ///
-    /// The caller is responsible for making sure that the cache key is correct:
-    /// - The cache key must be a projection of the `init` input; if it is wider, then there
-    ///   will be unnecessary cache misses.
-    /// - The cache key must uniquely identify the state; if it is too narrow (e.g. `()` is
-    ///   always technically a projection), then you may find cache results that don't match
-    ///   the input (e.g. if you don't put filename in the key, you get different file's data).
-    pub async fn get<F>(&self, key: &impl ToOwned<Owned=K>, init: impl FnOnce(&K) -> F) -> &Result<V, Error>
-            where F: Future<Output=Result<V, Error>> {
+    pub async fn get<A, F>(&self, args: &A, init: fn(&A) -> F) -> &Result<V, Error>
+            where A: CacheId<Uid=K>, F: Future<Output=Result<V, Error>> {
         // TODO: how to statically ensure that F only depends on `key`? or is that core's job?
-        let ix = *match self.lookup.entry(key.to_owned()) {
+        let ix = *match self.lookup.entry(args.id()) {
             scc::hash_map::Entry::Occupied(occupied) => occupied,
             scc::hash_map::Entry::Vacant(vacant) =>
                 vacant.insert_entry(self.data.push(ALazy::new())),
         }.get();
-        self.data[ix].get(|| init(key)).await
+        self.data[ix].get(|| init(args)).await
     }
 }
 
