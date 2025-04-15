@@ -1,5 +1,5 @@
 use crate::ast::Ast;
-use crate::common::{CacheId, Error};
+use crate::common::{HasId, Error};
 use crate::common::Share;
 use crate::parse::unparse;
 use crate::Identifier;
@@ -39,7 +39,7 @@ impl File {
     }
 }
 
-impl CacheId for File {
+impl HasId for File {
     type Uid = ArcStr;
     // TODO @mverleg: have some kind of fast identity, like name+timestamp? or just pre-compute string hash
 
@@ -58,7 +58,7 @@ pub struct DiskFs();
 #[derive(Debug)]
 pub struct MockFs(pub HashMap<Identifier, Mutex<Option<File>>>);
 
-impl CacheId for DiskFs {
+impl HasId for DiskFs {
     type Uid = LocalHipStr<'static>;
 
     fn id(&self) -> Self::Uid {
@@ -82,7 +82,7 @@ impl MockFs {
     }
 }
 
-impl CacheId for MockFs {
+impl HasId for MockFs {
     type Uid = ();
 
     fn id(&self) -> Self::Uid {

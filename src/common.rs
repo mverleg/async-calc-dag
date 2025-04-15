@@ -38,17 +38,17 @@ impl <T: Share> Share for Result<T, Error> {
     }
 }
 
-/// The id must exactly identify the data.
+/// Has an id used for caching. The id must exactly identify the data.
 /// - Using too little will give mismatched caceh hits, causing strange bugs
 /// - Using too much is hard since this trait is a projection, but would lead to cache misses
 /// - This is used often, so both `id` and the result's hashcode should be cheap
-pub trait CacheId {
+pub trait HasId {
     type Uid: Eq + Hash;
 
     fn id(&self) -> Self::Uid;
 }
 
-impl CacheId for Identifier {
+impl HasId for Identifier {
     type Uid = LocalHipStr<'static>;
 
     fn id(&self) -> Self::Uid {
@@ -56,7 +56,7 @@ impl CacheId for Identifier {
     }
 }
 
-impl <A: CacheId, B: CacheId> CacheId for (A, B) {
+impl <A: HasId, B: HasId> HasId for (A, B) {
     type Uid = (A::Uid, B::Uid);
 
     fn id(&self) -> Self::Uid {
@@ -65,7 +65,7 @@ impl <A: CacheId, B: CacheId> CacheId for (A, B) {
 }
 
 // TODO mverleg: do a macro or something
-impl <A: CacheId, B: CacheId, C: CacheId> CacheId for (A, B, C) {
+impl <A: HasId, B: HasId, C: HasId> HasId for (A, B, C) {
     type Uid = (A::Uid, B::Uid, C::Uid);
 
     fn id(&self) -> Self::Uid {

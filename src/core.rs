@@ -1,6 +1,6 @@
 use crate::ast::Ast;
 use crate::cache::Cache;
-use crate::common::{CacheId, Error};
+use crate::common::{HasId, Error};
 use crate::common::Identifier;
 use crate::file::DiskFs;
 use crate::file::File;
@@ -10,7 +10,7 @@ use crate::lazy_async::ALazy;
 use crate::parse::parse;
 
 pub trait Mode {
-    type FsType: Fs + CacheId;
+    type FsType: Fs + HasId;
 }
 
 pub struct Prod {}
@@ -25,8 +25,8 @@ impl Mode for Test {
 
 pub struct Core<T: Mode> {
     fs: <T as Mode>::FsType,
-    files: Cache<(<<T as Mode>::FsType as CacheId>::Uid, <Identifier as CacheId>::Uid), File>,
-    asts: Cache<(<Identifier as CacheId>::Uid, <File as CacheId>::Uid), ALazy<Ast>>,
+    files: Cache<(<<T as Mode>::FsType as HasId>::Uid, <Identifier as HasId>::Uid), File>,
+    asts: Cache<(<Identifier as HasId>::Uid, <File as HasId>::Uid), ALazy<Ast>>,
     output: Cache<Identifier, ALazy<Result<i64, Error>>>,
     // TODO: can data structure be optimized? or jut make sure to not borrow map entries long?
 }

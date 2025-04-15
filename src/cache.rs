@@ -1,5 +1,5 @@
 use std::hash::Hash;
-use crate::common::{CacheId, Error, Share};
+use crate::common::{HasId, Error, Share};
 use crate::common::Identifier;
 use crate::file::File;
 use crate::lazy_async::ALazy;
@@ -49,7 +49,7 @@ impl <K: Eq + Hash, V> Cache<K, V> {
     /// - If it is currently being computed, wait (aync)
     /// - Otherwise (not computed yet), compute it now - only in this case is `init` called
     pub async fn get<A, F>(&self, args: A, init: fn(A) -> F) -> &Result<V, Error>
-            where A: CacheId<Uid=K>, F: Future<Output=Result<V, Error>> {
+            where A: HasId<Uid=K>, F: Future<Output=Result<V, Error>> {
         // TODO: how to statically ensure that F only depends on `key`? or is that core's job?
         let ix = *match self.lookup.entry(args.id()) {
             scc::hash_map::Entry::Occupied(occupied) => occupied,
