@@ -56,7 +56,7 @@ impl HasId for Identifier {
     }
 }
 
-impl <A: HasId, B: HasId> HasId for (A, B) {
+impl <'t, A: HasId, B: HasId> HasId for (&'t A, &'t B) {
     type Uid = (A::Uid, B::Uid);
 
     fn id(&self) -> Self::Uid {
@@ -65,7 +65,7 @@ impl <A: HasId, B: HasId> HasId for (A, B) {
 }
 
 // TODO mverleg: do a macro or something
-impl <A: HasId, B: HasId, C: HasId> HasId for (A, B, C) {
+impl <'t, A: HasId, B: HasId, C: HasId> HasId for (&'t A, &'t B, &'t C) {
     type Uid = (A::Uid, B::Uid, C::Uid);
 
     fn id(&self) -> Self::Uid {

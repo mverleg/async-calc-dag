@@ -26,8 +26,8 @@ impl Mode for Test {
 pub struct Core<T: Mode> {
     fs: <T as Mode>::FsType,
     files: Cache<(<<T as Mode>::FsType as HasId>::Uid, <Identifier as HasId>::Uid), File>,
-    asts: Cache<(<Identifier as HasId>::Uid, <File as HasId>::Uid), ALazy<Ast>>,
-    output: Cache<Identifier, ALazy<Result<i64, Error>>>,
+    asts: Cache<(<Identifier as HasId>::Uid, <File as HasId>::Uid), Ast>,
+    output: Cache<Identifier, i64>,
     // TODO: can data structure be optimized? or jut make sure to not borrow map entries long?
 }
 
@@ -38,10 +38,12 @@ impl <T: Mode> Core<T> {
     // set flag to detect cycles?
     // cache the result
     pub async fn read(&self, iden: &Identifier) -> &Result<File, Error> {
-        self.files.get((&self.fs, iden), |key| key.0.read(key.1)).await
+        self.files.get((&self.fs, iden),
+            |key| key.0.read(key.1)).await
     }
 
     pub async fn parse(&mut self, iden: &Identifier, content: &File) -> &Result<Ast, Error> {
-        self.asts.get((iden, content), |key| parse(&key.0, &key.1)).await
+        self.asts.get((iden, content),
+            |key: (&Identifier, &File)| async move { parse(&key.0, &key.1) }).await
     }
 }
