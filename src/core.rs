@@ -10,7 +10,7 @@ use crate::lazy_async::ALazy;
 use crate::parse::parse;
 
 pub trait Mode {
-    type FsType: Fs;
+    type FsType: Fs + CacheId;
 }
 
 pub struct Prod {}

@@ -25,7 +25,7 @@ async fn main() {
         .map(|s| s.parse().expect("Second and subsequent args should be integers if provided"))
         .collect::<Vec<_>>();
     let mut fs = DiskFs::default();
-    match evaluate(&mut fs, file, &arg_vals).await {
+    match evaluate(&fs, file, &arg_vals).await {
         Ok(val) => println!("{}", val),
         Err(Error::FileNotFound(f)) => println!("File not found: {}", f),
         Err(Error::CouldNotParse(f)) => println!("Could not parse: {}", f),

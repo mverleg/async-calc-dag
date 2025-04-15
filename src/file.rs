@@ -48,7 +48,7 @@ impl CacheId for File {
     }
 }
 
-pub trait Fs: fmt::Debug where for<'a> &'a Self: CacheId {
+pub trait Fs: fmt::Debug {
     async fn read(&self, iden: &Identifier) -> Result<File, Error>;
 }
 
@@ -67,7 +67,7 @@ impl CacheId for DiskFs {
     }
 }
 
-impl <'a> Fs for &'a DiskFs {
+impl Fs for DiskFs {
     async fn read(&self, iden: &Identifier) -> Result<File, Error> {
         Ok(read(&iden).await?)
     }
@@ -82,7 +82,7 @@ impl MockFs {
     }
 }
 
-impl <'a> CacheId for &'a MockFs {
+impl CacheId for MockFs {
     type Uid = ();
 
     fn id(&self) -> Self::Uid {
